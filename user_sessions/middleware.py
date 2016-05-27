@@ -3,7 +3,7 @@ import time
 from django.conf import settings
 from django.utils.cache import patch_vary_headers
 from django.utils.http import cookie_date
-from django.utils.importlib import import_module
+from importlib import import_module
 
 
 class SessionMiddleware(object):
@@ -13,8 +13,10 @@ class SessionMiddleware(object):
     def process_request(self, request):
         engine = import_module(settings.SESSION_ENGINE)
         session_key = request.COOKIES.get(settings.SESSION_COOKIE_NAME, None)
+        ip = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '')
+        ip = ip.split(',')[0]
         request.session = engine.SessionStore(
-            ip=request.META.get('REMOTE_ADDR', ''),
+            ip=ip,
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             session_key=session_key
         )
